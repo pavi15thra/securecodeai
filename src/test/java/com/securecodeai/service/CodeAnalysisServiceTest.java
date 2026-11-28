@@ -1,3 +1,4 @@
+
 package com.securecodeai.service;
 
 import org.junit.jupiter.api.Test;
@@ -121,6 +122,22 @@ public class CodeAnalysisServiceTest {
         assertEquals(1, response.getTotalFindings());
         assertEquals(
                 "Hardcoded Password",
+                response.getFindings().get(0).getVulnerabilityName()
+        );
+    }
+
+    @Test
+    public void testSqlInjectionDetection() {
+
+        String sourceCode =
+                "String query = \"SELECT * FROM users WHERE name = '\" + userInput + \"'\";";
+
+        ScanResponse response =
+                codeAnalysisService.analyzeCode(sourceCode);
+
+        assertEquals(1, response.getTotalFindings());
+        assertEquals(
+                "SQL Injection",
                 response.getFindings().get(0).getVulnerabilityName()
         );
     }
