@@ -64,4 +64,64 @@ public class CodeAnalysisServiceTest {
         assertEquals("INVALID_INPUT", response.getStatus());
         assertTrue(response.getFindings().isEmpty());
     }
+
+    @Test
+    public void testHardcodedApiKeyDetection() {
+
+        String sourceCode = "String apiKey = \"ABC123XYZ\";";
+
+        ScanResponse response =
+                codeAnalysisService.analyzeCode(sourceCode);
+
+        assertEquals(1, response.getTotalFindings());
+        assertEquals(
+                "Hardcoded API Key",
+                response.getFindings().get(0).getVulnerabilityName()
+        );
+    }
+
+    @Test
+    public void testHardcodedSecretDetection() {
+
+        String sourceCode = "String secret = \"mySecret123\";";
+
+        ScanResponse response =
+                codeAnalysisService.analyzeCode(sourceCode);
+
+        assertEquals(1, response.getTotalFindings());
+        assertEquals(
+                "Hardcoded Secret",
+                response.getFindings().get(0).getVulnerabilityName()
+        );
+    }
+
+    @Test
+    public void testHardcodedTokenDetection() {
+
+        String sourceCode = "String token = \"XYZ789\";";
+
+        ScanResponse response =
+                codeAnalysisService.analyzeCode(sourceCode);
+
+        assertEquals(1, response.getTotalFindings());
+        assertEquals(
+                "Hardcoded Token",
+                response.getFindings().get(0).getVulnerabilityName()
+        );
+    }
+
+    @Test
+    public void testCaseInsensitivePasswordDetection() {
+
+        String sourceCode = "String PASSWORD=\"admin123\";";
+
+        ScanResponse response =
+                codeAnalysisService.analyzeCode(sourceCode);
+
+        assertEquals(1, response.getTotalFindings());
+        assertEquals(
+                "Hardcoded Password",
+                response.getFindings().get(0).getVulnerabilityName()
+        );
+    }
 }

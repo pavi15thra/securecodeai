@@ -3,6 +3,8 @@ package com.securecodeai.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
 
@@ -11,6 +13,10 @@ import com.securecodeai.model.VulnerabilityFinding;
 
 @Service
 public class CodeAnalysisService {
+
+    private static final Pattern CREDENTIAL_PATTERN = Pattern.compile(
+        "(?i)\\b(password|passwd|pwd|api[_-]?key|secret|token)\\b\\s*=\\s*(['\"])[^'\"]+['\"]"
+    );
 
     public ScanResponse analyzeCode(String sourceCode) {
 
@@ -26,17 +32,41 @@ public class CodeAnalysisService {
             return response;
         }
 
-        if (sourceCode.contains("password =")) {
+        Matcher matcher = CREDENTIAL_PATTERN.matcher(sourceCode);
+
+        while (matcher.find()) {
+
+            String credentialType = matcher.group(1).toLowerCase();
 
             VulnerabilityFinding finding = new VulnerabilityFinding();
 
-            finding.setVulnerabilityName("Hardcoded Password");
+            if (credentialType.contains("password")
+                    || credentialType.equals("passwd")
+                    || credentialType.equals("pwd")) {
+
+                finding.setVulnerabilityName("Hardcoded Password");
+
+            } else if (credentialType.contains("api")) {
+
+                finding.setVulnerabilityName("Hardcoded API Key");
+
+            } else if (credentialType.equals("secret")) {
+
+                finding.setVulnerabilityName("Hardcoded Secret");
+
+            } else {
+
+                finding.setVulnerabilityName("Hardcoded Token");
+            }
+
             finding.setSeverity("HIGH");
+
             finding.setDescription(
-                "A password appears to be directly written in the source code."
+                "A hardcoded credential appears to be directly written in the source code."
             );
+
             finding.setRecommendation(
-                "Remove the hardcoded password and use environment variables or a secure secrets manager."
+                "Remove hardcoded credentials and use environment variables or a secure secrets manager."
             );
 
             findings.add(finding);
